@@ -5,6 +5,7 @@ import (
 
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/models"
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,17 +16,32 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepository repository.UserRepository
+	userRepository  repository.UserRepository
+	categoryService repository.CategoryRepository
 }
 
-func NewUserService(userRepository repository.UserRepository) *userService {
-	return &userService{userRepository}
+func NewUserService(userRepository repository.UserRepository, categoryService repository.CategoryRepository) *userService {
+	return &userService{userRepository, categoryService}
 }
 
 func (s *userService) Register(ctx context.Context, user models.UserRegister) (interface{}, error) {
 	hashPassword(&user.Password)
 
 	userID, err := s.userRepository.Register(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	objectID := userID.(primitive.ObjectID)
+
+	categories := []interface{}{
+		models.Category{Id: primitive.NewObjectID(), Type: "Todo", UserId: objectID},
+		models.Category{Id: primitive.NewObjectID(), Type: "In Progress", UserId: objectID},
+		models.Category{Id: primitive.NewObjectID(), Type: "Done", UserId: objectID},
+		models.Category{Id: primitive.NewObjectID(), Type: "Backlog", UserId: objectID},
+	}
+
+	_, err = s.categoryService.StoreManyCategory(ctx, categories)
 	if err != nil {
 		return nil, err
 	}

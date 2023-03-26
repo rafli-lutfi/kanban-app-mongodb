@@ -23,10 +23,19 @@ func muxRoute(mux *http.ServeMux, method string, path string, handler http.Handl
 
 func RunServer(mux *http.ServeMux, db *mongo.Database) *http.ServeMux {
 	userRepository := repository.NewUserRepository(db)
-	userService := services.NewUserService(userRepository)
+	categoryRepository := repository.NewCategoryRepository(db)
+
+	userService := services.NewUserService(userRepository, categoryRepository)
+	categoryService := services.NewCategoryService(categoryRepository)
+
 	userAPIHandler := controllers.NewUserHandler(userService)
+	categoryAPIHandler := controllers.NewCategoryHandler(categoryService)
 
 	muxRoute(mux, "POST", "/api/v1/user/register", middleware.Post(http.HandlerFunc(userAPIHandler.Register))) // User REGISTER
-	muxRoute(mux, "POST", "/api/v1/user/login", middleware.Post(http.HandlerFunc(userAPIHandler.Login)))
+	muxRoute(mux, "POST", "/api/v1/user/login", middleware.Post(http.HandlerFunc(userAPIHandler.Login)))       // User Login
+
+	muxRoute(mux, "GET", "/api/v1/category/get", middleware.Get(middleware.Auth(http.HandlerFunc(categoryAPIHandler.GetCategory))), "?category_id=")
+	muxRoute(mux, "POST", "/api/v1/category/create", middleware.Post(middleware.Auth(http.HandlerFunc(categoryAPIHandler.CreateCategory))))
+
 	return mux
 }
