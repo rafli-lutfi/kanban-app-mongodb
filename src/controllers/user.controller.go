@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/models"
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/services"
 	"golang.org/x/net/context"
@@ -31,22 +34,22 @@ func (h *userHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		responeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
 		return
 	}
 
 	if user.Fullname == "" || user.Email == "" || user.Password == "" {
-		responeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
 		return
 	}
 
 	userID, err := h.userService.Register(ctx, user)
 	if err != nil {
-		responeWithError(w, http.StatusInternalServerError, err.Error())
+		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	responeWithJson(w, http.StatusCreated, "success registered", map[string]interface{}{
+	models.ResponeWithJson(w, http.StatusCreated, "success registered", map[string]interface{}{
 		"id": userID,
 	})
 }
@@ -59,39 +62,54 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
-		responeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
 		return
 	}
 
 	if creds.Email == "" || creds.Password == "" {
-		responeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
 		return
 	}
 
 	user, err := h.userService.Login(ctx, creds)
 	if err != nil {
-		responeWithError(w, http.StatusInternalServerError, err.Error())
+		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	responeWithJson(w, http.StatusOK, "success logged in", map[string]interface{}{
+	fmt.Println(user.Id.String())
+	tokenString, err := generateJWT(user.Id.Hex())
+	if err != nil {
+		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   3600 * 24,
+		Secure:   false,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	models.ResponeWithJson(w, http.StatusOK, "success logged in", map[string]interface{}{
 		"fullname": user.Fullname,
 	})
 }
 
-func responeWithError(w http.ResponseWriter, statusCode int, msg string) {
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": statusCode,
-		"error":  msg,
+func generateJWT(id string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  id,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
-}
 
-func responeWithJson(w http.ResponseWriter, statusCode int, msg string, payload interface{}) {
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":  statusCode,
-		"message": msg,
-		"data":    payload,
-	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

@@ -3,6 +3,7 @@ module github.com/rafli-lutfi/kanban-app-mongodb
 go 1.19
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.11.3
 	golang.org/x/crypto v0.7.0
