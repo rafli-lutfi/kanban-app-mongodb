@@ -5,11 +5,13 @@ import (
 
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/models"
 	"github.com/rafli-lutfi/kanban-app-mongodb/src/repository"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	Register(ctx context.Context, user models.UserRegister) (interface{}, error)
+	Login(ctx context.Context, user models.UserLogin) (models.User, error)
 }
 
 type userService struct {
@@ -29,6 +31,24 @@ func (s *userService) Register(ctx context.Context, user models.UserRegister) (i
 	}
 
 	return userID, nil
+}
+
+func (s *userService) Login(ctx context.Context, user models.UserLogin) (models.User, error) {
+	userDB, err := s.userRepository.FindUserByEmail(ctx, user.Email)
+	if err == mongo.ErrNoDocuments {
+		return models.User{}, models.ErrEmailPasswordNotMatched
+	}
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	valid := validatePassword(userDB.Password, user.Password)
+	if !valid {
+		return models.User{}, models.ErrEmailPasswordNotMatched
+	}
+
+	return userDB, nil
 }
 
 func hashPassword(pass *string) {

@@ -11,4 +11,7 @@ var (
 
 	// there is empty data on body
 	ErrEmptyDataBody = errors.New("there is empty data on body")
+
+	// Email or password is not match
+	ErrEmailPasswordNotMatched = errors.New("email or password is not matched")
 )

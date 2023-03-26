@@ -27,6 +27,6 @@ func RunServer(mux *http.ServeMux, db *mongo.Database) *http.ServeMux {
 	userAPIHandler := controllers.NewUserHandler(userService)
 
 	muxRoute(mux, "POST", "/api/v1/user/register", middleware.Post(http.HandlerFunc(userAPIHandler.Register))) // User REGISTER
-
+	muxRoute(mux, "POST", "/api/v1/user/login", middleware.Post(http.HandlerFunc(userAPIHandler.Login)))
 	return mux
 }
