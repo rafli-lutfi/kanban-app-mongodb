@@ -31,26 +31,21 @@ func (h *categoryHandler) GetCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	id := r.URL.Query().Get("category_id")
+	id := fmt.Sprintf("%s", r.Context().Value("id"))
 
-	if id == "" {
-		models.ResponeWithError(w, http.StatusBadRequest, models.ErrQueryParamEmpty.Error())
-		return
-	}
-
-	categoryID, err := primitive.ObjectIDFromHex(id)
+	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		models.ResponeWithError(w, http.StatusInternalServerError, "invalid id")
+		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
 		return
 	}
 
-	category, err := h.categoryService.GetCategoryByID(ctx, categoryID)
+	categories, err := h.categoryService.GetCategories(ctx, userID)
 	if err != nil {
 		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusOK, "success get category", category)
+	models.ResponeWithJson(w, http.StatusOK, "success get all category", categories)
 }
 
 func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +58,7 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
+		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
 		return
 	}
 
@@ -95,6 +90,30 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *categoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request) {}
+func (h *categoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	id := r.URL.Query().Get("category_id")
+
+	if id == "" {
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrQueryParamEmpty.Error())
+		return
+	}
+
+	categoryID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
+		return
+	}
+
+	err = h.categoryService.DeleteCategory(ctx, categoryID)
+	if err != nil {
+		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	models.ResponeWithJson(w, http.StatusOK, "success deleted category", nil)
+}
 
 func (h *categoryHandler) GetCategoryWithTask(w http.ResponseWriter, r *http.Request) {}

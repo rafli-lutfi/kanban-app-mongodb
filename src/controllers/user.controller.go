@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -77,7 +76,6 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(user.Id.String())
 	tokenString, err := generateJWT(user.Id.Hex())
 	if err != nil {
 		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())

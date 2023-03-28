@@ -21,21 +21,52 @@ func muxRoute(mux *http.ServeMux, method string, path string, handler http.Handl
 	mux.Handle(path, handler)
 }
 
+type APIHandler struct {
+	userHandler     controllers.UserHandler
+	categoryHandler controllers.CategoryHandler
+	taskHandler     controllers.TaskHandler
+}
+
 func RunServer(mux *http.ServeMux, db *mongo.Database) *http.ServeMux {
 	userRepository := repository.NewUserRepository(db)
 	categoryRepository := repository.NewCategoryRepository(db)
+	taskRepository := repository.NewTaskRepository(db)
 
 	userService := services.NewUserService(userRepository, categoryRepository)
 	categoryService := services.NewCategoryService(categoryRepository)
+	taskService := services.NewTaskService(taskRepository, categoryRepository)
 
 	userAPIHandler := controllers.NewUserHandler(userService)
 	categoryAPIHandler := controllers.NewCategoryHandler(categoryService)
+	taskAPIHandler := controllers.NewTaskHandler(taskService)
 
-	muxRoute(mux, "POST", "/api/v1/user/register", middleware.Post(http.HandlerFunc(userAPIHandler.Register))) // User REGISTER
-	muxRoute(mux, "POST", "/api/v1/user/login", middleware.Post(http.HandlerFunc(userAPIHandler.Login)))       // User Login
+	APIHandler := APIHandler{
+		userHandler:     userAPIHandler,
+		categoryHandler: categoryAPIHandler,
+		taskHandler:     taskAPIHandler,
+	}
 
-	muxRoute(mux, "GET", "/api/v1/category/get", middleware.Get(middleware.Auth(http.HandlerFunc(categoryAPIHandler.GetCategory))), "?category_id=")
-	muxRoute(mux, "POST", "/api/v1/category/create", middleware.Post(middleware.Auth(http.HandlerFunc(categoryAPIHandler.CreateCategory))))
+	muxRoute(mux, "POST", "/api/v1/user/register", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Register))) // User REGISTER
+	muxRoute(mux, "POST", "/api/v1/user/login", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Login)))       // User Login
+
+	muxRoute(mux, "GET", "/api/v1/category/get", middleware.Get(middleware.Auth(http.HandlerFunc(APIHandler.categoryHandler.GetCategory))))
+	muxRoute(mux, "POST", "/api/v1/category/create", middleware.Post(middleware.Auth(http.HandlerFunc(APIHandler.categoryHandler.CreateCategory))))
+	muxRoute(mux, "DELETE", "/api/v1/category/delete", middleware.Delete(middleware.Auth(http.HandlerFunc(APIHandler.categoryHandler.DeleteCategory))), "?category_id=")
+	// Show Dashboard with categories with their tasks
+
+	// Get Task
+	muxRoute(mux, "GET", "/api/v1/task/get", middleware.Get(middleware.Auth(http.HandlerFunc(APIHandler.taskHandler.GetTaskByID))), "?task_id=")
+
+	// Create Task
+	muxRoute(mux, "POST", "/api/v1/task/create", middleware.Post(middleware.Auth(http.HandlerFunc(APIHandler.taskHandler.StoreTask))))
+
+	// Update Task
+	muxRoute(mux, "PUT", "/api/v1/task/update", middleware.Put(middleware.Auth(http.HandlerFunc(APIHandler.taskHandler.UpdateTask))))
+
+	// Update Task's Category OR Change Task State On Kanban
+
+	// Delete Task
+	muxRoute(mux, "DELETE", "/api/v1/task/delete", middleware.Delete(middleware.Auth(http.HandlerFunc(APIHandler.taskHandler.DeleteTask))), "?task_id=")
 
 	return mux
 }

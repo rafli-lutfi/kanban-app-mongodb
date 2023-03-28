@@ -19,10 +19,11 @@ func Auth(next http.Handler) http.Handler {
 
 		if err != nil {
 			if headerType == "application/json" {
-				models.ResponeWithError(w, http.StatusUnauthorized, err.Error())
+				models.ResponeWithError(w, http.StatusUnauthorized, "please login first")
 				return
 			} else {
-				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				// http.Redirect(w, r, "/login", http.StatusSeeOther)
+				models.ResponeWithError(w, http.StatusUnauthorized, "please login first")
 				return
 			}
 		}

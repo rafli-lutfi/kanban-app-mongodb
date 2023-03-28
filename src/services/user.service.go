@@ -27,6 +27,11 @@ func NewUserService(userRepository repository.UserRepository, categoryService re
 func (s *userService) Register(ctx context.Context, user models.UserRegister) (interface{}, error) {
 	hashPassword(&user.Password)
 
+	_, err := s.userRepository.FindUserByEmail(ctx, user.Email)
+	if err == nil {
+		return nil, models.ErrEmailAlredyExist
+	}
+
 	userID, err := s.userRepository.Register(ctx, user)
 	if err != nil {
 		return nil, err

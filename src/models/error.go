@@ -17,6 +17,12 @@ var (
 
 	ErrQueryParamEmpty = errors.New("query param is empty")
 
+	// ID is invalid
+	ErrInvalidID = errors.New("invalid id")
+
+	// Email already exist
+	ErrEmailAlredyExist = errors.New("email already exist")
+
 	// Email or password is not match
 	ErrEmailPasswordNotMatched = errors.New("email or password is not matched")
 

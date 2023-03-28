@@ -7,7 +7,7 @@ import (
 type Category struct {
 	Id     primitive.ObjectID `json:"id" bson:"_id, omitempty"`
 	Type   string             `json:"type" bson:"type"`
-	UserId primitive.ObjectID `json:"user_id" bson:"userID"`
+	UserId primitive.ObjectID `json:"user_id" bson:"user_id"`
 }
 
 type CategoryRequest struct {

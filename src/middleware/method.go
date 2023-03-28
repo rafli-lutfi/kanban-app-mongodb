@@ -11,11 +11,12 @@ func Get(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			respone := map[string]any{
-				"error": models.ErrMethodNotAllowed,
+				"error": models.ErrMethodNotAllowed.Error(),
 			}
 
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			json.NewEncoder(w).Encode(respone)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -27,11 +28,12 @@ func Post(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			respone := map[string]any{
-				"error": models.ErrMethodNotAllowed,
+				"error": models.ErrMethodNotAllowed.Error(),
 			}
 
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			json.NewEncoder(w).Encode(respone)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -43,11 +45,12 @@ func Put(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut {
 			respone := map[string]any{
-				"error": models.ErrMethodNotAllowed,
+				"error": models.ErrMethodNotAllowed.Error(),
 			}
 
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			json.NewEncoder(w).Encode(respone)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -59,11 +62,12 @@ func Delete(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			respone := map[string]any{
-				"error": models.ErrMethodNotAllowed,
+				"error": models.ErrMethodNotAllowed.Error(),
 			}
 
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			json.NewEncoder(w).Encode(respone)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")

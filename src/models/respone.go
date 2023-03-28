@@ -15,6 +15,15 @@ func ResponeWithError(w http.ResponseWriter, statusCode int, msg string) {
 
 func ResponeWithJson(w http.ResponseWriter, statusCode int, msg string, payload interface{}) {
 	w.WriteHeader(statusCode)
+
+	if payload == nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  statusCode,
+			"message": msg,
+		})
+		return
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  statusCode,
 		"message": msg,
