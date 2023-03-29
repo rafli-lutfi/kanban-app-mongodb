@@ -7,15 +7,10 @@ import (
 type Category struct {
 	Id     primitive.ObjectID `json:"id" bson:"_id, omitempty"`
 	Type   string             `json:"type" bson:"type"`
-	UserId primitive.ObjectID `json:"user_id" bson:"user_id"`
+	UserId primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
+	Tasks  []Task             `json:"tasks,omitempty" bson:"tasks,omitempty"`
 }
 
 type CategoryRequest struct {
 	Type string `json:"type" binding:"required"`
-}
-
-type CategoryData struct {
-	Id    string `json:"id"`
-	Type  string `json:"type"`
-	Tasks []Task `json:"tasks"`
 }

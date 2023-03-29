@@ -33,7 +33,7 @@ func RunServer(mux *http.ServeMux, db *mongo.Database) *http.ServeMux {
 	taskRepository := repository.NewTaskRepository(db)
 
 	userService := services.NewUserService(userRepository, categoryRepository)
-	categoryService := services.NewCategoryService(categoryRepository)
+	categoryService := services.NewCategoryService(categoryRepository, taskRepository)
 	taskService := services.NewTaskService(taskRepository, categoryRepository)
 
 	userAPIHandler := controllers.NewUserHandler(userService)

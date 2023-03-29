@@ -17,10 +17,11 @@ type CategoryService interface {
 }
 type categoryService struct {
 	categoryRepository repository.CategoryRepository
+	taskRepository     repository.TaskRepository
 }
 
-func NewCategoryService(categoryRepository repository.CategoryRepository) *categoryService {
-	return &categoryService{categoryRepository}
+func NewCategoryService(categoryRepository repository.CategoryRepository, taskRepository repository.TaskRepository) *categoryService {
+	return &categoryService{categoryRepository, taskRepository}
 }
 
 func (s *categoryService) GetCategoryByID(ctx context.Context, categoryID primitive.ObjectID) (models.Category, error) {
@@ -36,9 +37,16 @@ func (s *categoryService) GetCategoryByID(ctx context.Context, categoryID primit
 }
 
 func (s *categoryService) GetCategories(ctx context.Context, userID primitive.ObjectID) ([]models.Category, error) {
-	categories, err := s.categoryRepository.GetCategories(ctx, userID)
+	categoriesDB, err := s.categoryRepository.GetCategories(ctx, userID)
 	if err != nil {
 		return []models.Category{}, err
+	}
+
+	var categories = []models.Category{}
+
+	for _, category := range categoriesDB {
+		category.Tasks = nil
+		categories = append(categories, category)
 	}
 
 	return categories, nil
@@ -56,7 +64,15 @@ func (s *categoryService) StoreCategory(ctx context.Context, category models.Cat
 func (s *categoryService) UpdateCategory() {}
 
 func (s *categoryService) DeleteCategory(ctx context.Context, categoryID primitive.ObjectID) error {
+	_, err := s.categoryRepository.GetCategoryByID(ctx, categoryID)
+	if err != nil {
+		return err
+	}
 	// TODO: delete all task according to categoryID
+	err = s.taskRepository.DeleteAllTaskByCategory(ctx, categoryID)
+	if err != nil {
+		return err
+	}
 
 	return s.categoryRepository.DeleteCategory(ctx, categoryID)
 }

@@ -16,6 +16,7 @@ type CategoryRepository interface {
 	StoreCategory(ctx context.Context, category models.Category) (interface{}, error)
 	StoreManyCategory(ctx context.Context, categories []interface{}) (interface{}, error)
 	DeleteCategory(ctx context.Context, categoryID primitive.ObjectID) error
+	DeleteCategoryTask(ctx context.Context, categoryID primitive.ObjectID, taskID primitive.ObjectID) error
 }
 
 type categoryRepository struct {
@@ -100,5 +101,19 @@ func (r *categoryRepository) DeleteCategory(ctx context.Context, categoryID prim
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (r *categoryRepository) DeleteCategoryTask(ctx context.Context, categoryID primitive.ObjectID, taskID primitive.ObjectID) error {
+	var collection = r.db.Collection("categories")
+
+	filter := bson.D{{Key: "_id", Value: categoryID}}
+	data := bson.M{"$pull": bson.M{"tasks": bson.M{"_id": taskID}}}
+
+	_, err := collection.UpdateOne(ctx, filter, data)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

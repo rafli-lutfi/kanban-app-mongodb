@@ -17,8 +17,8 @@ type TaskService interface {
 }
 
 type taskService struct {
-	taskRepository  repository.TaskRepository
-	categoryService repository.CategoryRepository
+	taskRepository     repository.TaskRepository
+	categoryRepository repository.CategoryRepository
 }
 
 func NewTaskService(taskRepository repository.TaskRepository, categoryService repository.CategoryRepository) *taskService {
@@ -35,7 +35,7 @@ func (s *taskService) GetTaskByID(ctx context.Context, taskID primitive.ObjectID
 }
 
 func (s *taskService) StoreTask(ctx context.Context, task models.Task) (interface{}, error) {
-	_, err := s.categoryService.GetCategoryByID(ctx, task.CategoryId)
+	_, err := s.categoryRepository.GetCategoryByID(ctx, task.CategoryId)
 	if err == mongo.ErrNoDocuments {
 		return nil, models.ErrRecordNotFound
 	}
@@ -69,5 +69,15 @@ func (s *taskService) UpdateTask(ctx context.Context, task models.Task) error {
 }
 
 func (s *taskService) DeleteTask(ctx context.Context, taskID primitive.ObjectID) error {
+	task, err := s.taskRepository.GetTaskByID(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	err = s.categoryRepository.DeleteCategoryTask(ctx, task.CategoryId, taskID)
+	if err != nil {
+		return err
+	}
+
 	return s.taskRepository.DeleteTask(ctx, taskID)
 }
