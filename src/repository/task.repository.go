@@ -15,6 +15,7 @@ type TaskRepository interface {
 	UpdateTask(ctx context.Context, task models.Task) error
 	DeleteTask(ctx context.Context, taskID primitive.ObjectID) error
 	DeleteAllTaskByCategory(ctx context.Context, categoryID primitive.ObjectID) error
+	AppendTaskToCategoryTasks(ctx context.Context, task models.Task) error
 }
 
 type taskRepository struct {
@@ -46,7 +47,7 @@ func (r *taskRepository) StoreTask(ctx context.Context, task models.Task) (inter
 		return nil, err
 	}
 
-	err = r.appendTaskToCategoryTasks(ctx, task)
+	err = r.AppendTaskToCategoryTasks(ctx, task)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func (r *taskRepository) DeleteAllTaskByCategory(ctx context.Context, categoryID
 	return nil
 }
 
-func (r *taskRepository) appendTaskToCategoryTasks(ctx context.Context, task models.Task) error {
+func (r *taskRepository) AppendTaskToCategoryTasks(ctx context.Context, task models.Task) error {
 	collection := r.db.Collection("categories")
 
 	filter := bson.D{{Key: "_id", Value: task.CategoryId}}

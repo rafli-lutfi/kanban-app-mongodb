@@ -11,12 +11,12 @@ type Task struct {
 }
 
 type RequestTask struct {
-	CategoryID  string `json:"category_id" binding:"required"`
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description" binding:"required"`
+	CategoryID  primitive.ObjectID `json:"category_id" binding:"required"`
+	Title       string             `json:"title" binding:"required"`
+	Description string             `json:"description" binding:"required"`
 }
 
 type TaskCategoryRequest struct {
-	ID         int `json:"id"`
-	CategoryID int `json:"category_id" binding:"required"`
+	ID         primitive.ObjectID `json:"id"`
+	CategoryID primitive.ObjectID `json:"category_id" binding:"required"`
 }

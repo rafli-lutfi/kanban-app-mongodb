@@ -15,6 +15,7 @@ import (
 type UserHandler interface {
 	Register(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
+	Logout(w http.ResponseWriter, r *http.Request)
 }
 
 type userHandler struct {
@@ -76,6 +77,8 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := user.Id.Hex()
+
 	tokenString, err := generateJWT(user.Id.Hex())
 	if err != nil {
 		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
@@ -94,8 +97,26 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	models.ResponeWithJson(w, http.StatusOK, "success logged in", map[string]interface{}{
-		"fullname": user.Fullname,
+		"id": userID,
 	})
+}
+
+func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("token")
+	if err != nil {
+		models.ResponeWithError(w, http.StatusUnauthorized, "please login first")
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:   "token",
+		Value:  "",
+		Path:   "/",
+		Domain: "localhost",
+		MaxAge: -1,
+	})
+
+	models.ResponeWithJson(w, http.StatusOK, "success logout", nil)
 }
 
 func generateJWT(id string) (string, error) {

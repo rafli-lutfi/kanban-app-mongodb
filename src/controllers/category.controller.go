@@ -16,7 +16,6 @@ type CategoryHandler interface {
 	GetCategory(w http.ResponseWriter, r *http.Request)
 	CreateCategory(w http.ResponseWriter, r *http.Request)
 	DeleteCategory(w http.ResponseWriter, r *http.Request)
-	GetCategoryWithTask(w http.ResponseWriter, r *http.Request)
 }
 
 type categoryHandler struct {
@@ -115,5 +114,3 @@ func (h *categoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 
 	models.ResponeWithJson(w, http.StatusOK, "success deleted category", nil)
 }
-
-func (h *categoryHandler) GetCategoryWithTask(w http.ResponseWriter, r *http.Request) {}

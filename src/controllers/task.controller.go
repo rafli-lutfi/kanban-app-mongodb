@@ -17,6 +17,7 @@ type TaskHandler interface {
 	StoreTask(w http.ResponseWriter, r *http.Request)
 	UpdateTask(w http.ResponseWriter, r *http.Request)
 	DeleteTask(w http.ResponseWriter, r *http.Request)
+	UpdateTaskCategory(w http.ResponseWriter, r *http.Request)
 }
 
 type taskHandler struct {
@@ -64,7 +65,7 @@ func (h *taskHandler) StoreTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if body.Title == "" || body.CategoryID == "" {
+	if body.Title == "" || body.CategoryID == primitive.NilObjectID {
 		models.ResponeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
 		return
 	}
@@ -77,17 +78,11 @@ func (h *taskHandler) StoreTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryObjectID, err := primitive.ObjectIDFromHex(body.CategoryID)
-	if err != nil {
-		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
-		return
-	}
-
 	task := models.Task{
 		Id:          primitive.NewObjectID(),
 		Title:       body.Title,
 		Description: body.Description,
-		CategoryId:  categoryObjectID,
+		CategoryId:  body.CategoryID,
 		UserId:      userObjectID,
 	}
 
@@ -146,4 +141,30 @@ func (h *taskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	models.ResponeWithJson(w, http.StatusOK, "success delete task", nil)
+}
+
+func (h *taskHandler) UpdateTaskCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	task := models.TaskCategoryRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&task)
+	if err != nil {
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
+		return
+	}
+
+	if task.CategoryID == primitive.NilObjectID || task.ID == primitive.NilObjectID {
+		models.ResponeWithError(w, http.StatusBadRequest, models.ErrQueryParamEmpty.Error())
+		return
+	}
+
+	err = h.taskService.UpdateTaskCategory(ctx, task.CategoryID, task.ID)
+	if err != nil {
+		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	models.ResponeWithJson(w, http.StatusOK, "success update", nil)
 }

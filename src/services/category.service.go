@@ -37,16 +37,9 @@ func (s *categoryService) GetCategoryByID(ctx context.Context, categoryID primit
 }
 
 func (s *categoryService) GetCategories(ctx context.Context, userID primitive.ObjectID) ([]models.Category, error) {
-	categoriesDB, err := s.categoryRepository.GetCategories(ctx, userID)
+	categories, err := s.categoryRepository.GetCategories(ctx, userID)
 	if err != nil {
 		return []models.Category{}, err
-	}
-
-	var categories = []models.Category{}
-
-	for _, category := range categoriesDB {
-		category.Tasks = nil
-		categories = append(categories, category)
 	}
 
 	return categories, nil

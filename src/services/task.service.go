@@ -14,6 +14,7 @@ type TaskService interface {
 	StoreTask(ctx context.Context, task models.Task) (interface{}, error)
 	UpdateTask(ctx context.Context, task models.Task) error
 	DeleteTask(ctx context.Context, taskID primitive.ObjectID) error
+	UpdateTaskCategory(ctx context.Context, categoryID primitive.ObjectID, taskID primitive.ObjectID) error
 }
 
 type taskService struct {
@@ -80,4 +81,36 @@ func (s *taskService) DeleteTask(ctx context.Context, taskID primitive.ObjectID)
 	}
 
 	return s.taskRepository.DeleteTask(ctx, taskID)
+}
+
+func (s *taskService) UpdateTaskCategory(ctx context.Context, categoryID primitive.ObjectID, taskID primitive.ObjectID) error {
+	taskDB, err := s.taskRepository.GetTaskByID(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	updateTask := models.Task{
+		Id:          taskID,
+		CategoryId:  categoryID,
+		Title:       taskDB.Title,
+		Description: taskDB.Description,
+		UserId:      taskDB.UserId,
+	}
+
+	err = s.taskRepository.UpdateTask(ctx, updateTask)
+	if err != nil {
+		return err
+	}
+
+	err = s.taskRepository.AppendTaskToCategoryTasks(ctx, updateTask)
+	if err != nil {
+		return err
+	}
+
+	err = s.categoryRepository.DeleteCategoryTask(ctx, taskDB.CategoryId, taskID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
