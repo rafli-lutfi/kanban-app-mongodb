@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +15,9 @@ func init() {
 	config.LoadEnv()
 	config.ConnectDB()
 }
+
+//go:embed src/views/*
+var Resource embed.FS
 
 func main() {
 	var port = os.Getenv("PORT")
@@ -31,6 +35,7 @@ func main() {
 		var db = config.GetDBConnection()
 
 		routes.RunServer(mux, db)
+		routes.RunClient(mux, Resource)
 
 		fmt.Println("Server Running On Port", port)
 		http.ListenAndServe(":"+port, mux)

@@ -59,13 +59,15 @@ func (h *taskHandler) StoreTask(w http.ResponseWriter, r *http.Request) {
 
 	var body models.RequestTask
 
+	fmt.Println("hitted")
+
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		models.ResponeWithError(w, http.StatusBadRequest, models.ErrFailedDecodeBody.Error())
 		return
 	}
 
-	if body.Title == "" || body.CategoryID == primitive.NilObjectID {
+	if body.Title == "" || body.CategoryID == "" {
 		models.ResponeWithError(w, http.StatusBadRequest, models.ErrEmptyDataBody.Error())
 		return
 	}
@@ -78,11 +80,19 @@ func (h *taskHandler) StoreTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	categoryObjectID, err := primitive.ObjectIDFromHex(body.CategoryID)
+	if err != nil {
+		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
+		return
+	}
+
+	fmt.Println(categoryObjectID)
+
 	task := models.Task{
 		Id:          primitive.NewObjectID(),
 		Title:       body.Title,
 		Description: body.Description,
-		CategoryId:  body.CategoryID,
+		CategoryId:  categoryObjectID,
 		UserId:      userObjectID,
 	}
 
@@ -92,7 +102,9 @@ func (h *taskHandler) StoreTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusOK, "success created task", map[string]interface{}{
+	fmt.Println("done")
+
+	models.ResponeWithJson(w, http.StatusCreated, "success created task", map[string]interface{}{
 		"id": taskID,
 	})
 }

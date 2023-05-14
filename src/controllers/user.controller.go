@@ -49,9 +49,16 @@ func (h *userHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusCreated, "success registered", map[string]interface{}{
-		"id": userID,
-	})
+	respone := map[string]any{
+		"status":  true,
+		"message": "success registered",
+		"data": map[string]any{
+			"id": userID,
+		},
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(respone)
 }
 
 func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -77,8 +84,6 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := user.Id.Hex()
-
 	tokenString, err := generateJWT(user.Id.Hex())
 	if err != nil {
 		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
@@ -93,12 +98,18 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   3600 * 24,
 		Secure:   false,
 		HttpOnly: false,
-		SameSite: http.SameSiteLaxMode,
 	})
 
-	models.ResponeWithJson(w, http.StatusOK, "success logged in", map[string]interface{}{
-		"id": userID,
-	})
+	respone := map[string]any{
+		"status":  true,
+		"message": "success logged in",
+		"data": map[string]any{
+			"id": tokenString,
+		},
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(respone)
 }
 
 func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +127,14 @@ func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	})
 
-	models.ResponeWithJson(w, http.StatusOK, "success logout", nil)
+	respone := map[string]any{
+		"status":   true,
+		"messaage": "success logout",
+		"data":     nil,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(respone)
 }
 
 func generateJWT(id string) (string, error) {

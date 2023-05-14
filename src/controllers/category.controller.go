@@ -34,17 +34,26 @@ func (h *categoryHandler) GetCategory(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		fmt.Println(err.Error())
 		models.ResponeWithError(w, http.StatusInternalServerError, models.ErrInvalidID.Error())
 		return
 	}
 
 	categories, err := h.categoryService.GetCategories(ctx, userID)
 	if err != nil {
+		fmt.Println(err.Error())
 		models.ResponeWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusOK, "success get all category", categories)
+	respone := map[string]any{
+		"status":  true,
+		"message": "success get all category",
+		"data":    categories,
+	}
+
+	// models.ResponeWithJson(w, http.StatusOK, "success get all category", categories)
+	json.NewEncoder(w).Encode(respone)
 }
 
 func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +93,7 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusOK, "success created category", map[string]interface{}{
+	models.ResponeWithJson(w, http.StatusCreated, "success created category", map[string]interface{}{
 		"id": categoryID,
 	})
 }

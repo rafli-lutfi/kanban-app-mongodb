@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{template "general/header" .}}
+</head>
+
+<body class="text-333 bg-gradient-to-r from-[#085078] to-[#85D8CE]">
+    <div class="w-1/4 px-5 pt-8 pb-8 mx-auto mt-44 rounded-xl drop-shadow-lg bg-white">
+        <div class="">
+            <a href="/dashboard"><button type="button" class="px-2 py-1 rounded hover:bg-blue-500 hover:text-white relative"><i class="fa-solid fa-arrow-left"></i></button></a>
+            <h3 class="text-2xl font-bold text-center text-blue-500 mx-auto">Add new task</h3>
+        </div>
+        <form class="mt-8 flex flex-col gap-2" action="/task/create?category={{.id}}" method="post">
+            <p class="font-medium">Title</p>
+            <input type="text" name="title" id="title" class="h-10 border-2 border-slate-200 hover:border-blue-500 outline-blue-500 rounded-xl px-2">
+            <p class="font-medium">Description</p>
+            <input type="text" name="description" id="description" class="h-10 border-2 border-slate-200 hover:border-blue-500 outline-blue-500 rounded-xl px-2">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded-md hover:bg-blue-600">create</button>
+        </form>
+    </div>
+</body>
+
+</html>

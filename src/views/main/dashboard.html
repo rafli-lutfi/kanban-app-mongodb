@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {{template "general/header" .}}
+</head>
+
+<body>
+  <div class="flex flex-col w-screen h-screen overflow-auto text-gray-700 bg-gradient-to-r from-[#085078] to-[#85D8CE]">
+    <div class="flex items-center flex-shrink-0 w-full h-16 px-10 bg-zinc-500 bg-opacity-25">
+      <svg class="w-8 h-8 text-red-400 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      </svg>
+      <h1 class="text-2xl font-bold text-gray-100 ml-2">Kanban App</h1>
+      <div class="flex items-center justify-center w-8 h-8 ml-auto">
+        <div class="flex items-center justify-center w-8 h-8 ml-auto">
+          <form action="/logout" method="post">
+            <input class="flex items-center justify-center ml-auto cursor-pointer font-bold" type="submit" value="Logout">
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {{$c := .categories}}
+    <div class="flex flex-grow px-10 mt-4 space-x-4 overflow-auto">
+      {{ range $i, $category := .categories}}
+      {{ $inc := inc $i}}
+      {{ $dec := dec $i}}
+
+      {{ $length := len $c}}
+      <div class="flex flex-col w-72 flex-shrink-0 mb-2 bg-gray-100 rounded-xl overflow-hidden">
+        <div class="flex justify-between items-center bg-red-500 px-4 py-2 rounded-t-xl">
+          <span class="block text-sm text-gray-100 font-semibold">{{ $category.Type}}</span>
+          <a href="/category/delete?category_id={{$category.Id}}">
+            <button type="button" class="block text-sm text-gray-100 font-semibold px-2 py-1 hover:bg-red-600 hover:rounded-md"><i class="fa-solid fa-trash"></i></button></a>
+          </a>
+        </div>
+        <a href="/task/add?category={{ $category.Id}}" class="bg-gray-200 m-2 py-2 px-4 rounded-md hover:bg-gray-300 font-semibold hover:font-bold">
+          <button type="button" class="text-sm"><i class="fa-solid fa-plus text-gray-500"></i>Add New Task</button>
+        </a>
+        <div class="overflow-auto">
+          {{ range $category.Tasks}}
+          <div class="flex flex-col gap-2 bg-gray-50 hover:bg-white mx-2 mb-3 p-4 rounded-md">
+            <div class="flex justify-between items-center pb-1 border-b-2">
+              <h2 class="text-lg font-medium">{{ .Title}}</h2>
+              <div class="flex justify-evenly items-center">
+                <a href="/task/update?task_id={{ .Id}}">
+                  <button type="button" class="px-2 py-1 rounded hover:bg-red-500 hover:text-white"><i class="fa-solid fa-pen-to-square"></i></button>
+                </a>
+                <a href="/task/delete?task_id={{ .Id}}">
+                  <button type="button" class="px-2 py-1 rounded hover:bg-red-500 hover:text-white"><i class="fa-solid fa-trash"></i></button>
+                </a>
+              </div>
+            </div>
+            <h3 class="text-sm font-medium">{{ .Description}}
+            </h3>
+            <div class="w-1/2 mt-1 mx-auto flex justify-center items-center">
+              {{if ne $i 0}}
+                {{ $prev := (index $c $dec).Id}}
+                <a href="task/update/process?task_id={{ .Id}}&category_id={{$prev}}">
+                  <button type="button" class="px-2 py-1 rounded hover:bg-red-600 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
+                </a>
+              {{end}}
+              {{if ne $inc $length}}
+                {{ $next := (index $c $inc).Id }}
+                <a href="task/update/process?task_id={{ .Id}}&category_id={{$next}}">
+                  <button type="button" class="px-2 py-1 rounded hover:bg-red-600 hover:text-white"><i class="fa-solid fa-arrow-right"></i></button>
+                </a>              
+              {{end}}
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+      <div class="flex flex-col w-72 flex-shrink-0 mb-2 rounded-xl overflow-hidden">
+        <a href="/category/add" class="bg-red-500 rounded-xl px-4 py-2 hover:bg-red-600">
+          <button type="button" class="text-sm text-white  w-full  "><i class="fa-solid fa-plus text-white mr-1"></i>Add Category</button>
+        </a>
+      </div>
+    </div>
+</body>
+
+</html>

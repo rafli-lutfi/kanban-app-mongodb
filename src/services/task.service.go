@@ -53,7 +53,7 @@ func (s *taskService) StoreTask(ctx context.Context, task models.Task) (interfac
 }
 
 func (s *taskService) UpdateTask(ctx context.Context, task models.Task) error {
-	_, err := s.taskRepository.GetTaskByID(ctx, task.Id)
+	taskDB, err := s.taskRepository.GetTaskByID(ctx, task.Id)
 	if err == mongo.ErrNoDocuments {
 		return models.ErrRecordNotFound
 	}
@@ -62,6 +62,24 @@ func (s *taskService) UpdateTask(ctx context.Context, task models.Task) error {
 	}
 
 	err = s.taskRepository.UpdateTask(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	err = s.categoryRepository.DeleteCategoryTask(ctx, taskDB.CategoryId, task.Id)
+	if err != nil {
+		return err
+	}
+
+	updatedTask := models.Task{
+		Id:          task.Id,
+		Title:       task.Title,
+		Description: task.Description,
+		CategoryId:  taskDB.CategoryId,
+		UserId:      taskDB.UserId,
+	}
+
+	err = s.taskRepository.AppendTaskToCategoryTasks(ctx, updatedTask)
 	if err != nil {
 		return err
 	}

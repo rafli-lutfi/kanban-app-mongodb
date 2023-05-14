@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -19,11 +20,10 @@ func Auth(next http.Handler) http.Handler {
 
 		if err != nil {
 			if headerType == "application/json" {
-				models.ResponeWithError(w, http.StatusUnauthorized, "please login first")
+				http.Error(w, "please login first", http.StatusUnauthorized)
 				return
 			} else {
-				// http.Redirect(w, r, "/login", http.StatusSeeOther)
-				models.ResponeWithError(w, http.StatusUnauthorized, "please login first")
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 		}
@@ -38,6 +38,7 @@ func Auth(next http.Handler) http.Handler {
 
 		// Token is either expired or not active yet
 		if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
+			fmt.Println("Token is either expired or not active yet")
 			models.ResponeWithError(w, http.StatusUnauthorized, "Token is either expired or not active yet")
 			return
 		}
@@ -61,7 +62,29 @@ func Auth(next http.Handler) http.Handler {
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
+			fmt.Println("Couldn't handle this token")
 			models.ResponeWithError(w, http.StatusUnauthorized, "Couldn't handle this token")
 		}
+	})
+}
+
+func Auth2(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerType := r.Header.Get("Content-Type")
+		c, err := r.Cookie("token")
+
+		if err != nil {
+			if headerType == "application/json" {
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(errors.New("error unauthorized user id"))
+				return
+			} else {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), "token", c.Value)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
