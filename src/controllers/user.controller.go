@@ -128,9 +128,9 @@ func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	respone := map[string]any{
-		"status":   true,
-		"messaage": "success logout",
-		"data":     nil,
+		"status":  true,
+		"message": "success logout",
+		"data":    nil,
 	}
 
 	w.WriteHeader(http.StatusOK)

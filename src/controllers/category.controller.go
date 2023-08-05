@@ -93,9 +93,16 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	models.ResponeWithJson(w, http.StatusCreated, "success created category", map[string]interface{}{
-		"id": categoryID,
-	})
+	respone := map[string]any{
+		"status":  true,
+		"message": "success created category",
+		"data": map[string]any{
+			"id": categoryID,
+		},
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(respone)
 }
 
 func (h *categoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request) {

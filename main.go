@@ -11,15 +11,13 @@ import (
 	"github.com/rafli-lutfi/kanban-app-mongodb/routes"
 )
 
-func init() {
-	config.LoadEnv()
-	config.ConnectDB()
-}
-
 //go:embed src/views/*
 var Resource embed.FS
 
 func main() {
+	config.LoadEnv()
+	config.ConnectDB()
+
 	var port = os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

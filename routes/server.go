@@ -46,9 +46,9 @@ func RunServer(mux *http.ServeMux, db *mongo.Database) *http.ServeMux {
 		taskHandler:     taskAPIHandler,
 	}
 
-	muxRoute(mux, "POST", "/api/v1/users/register", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Register)))            // User REGISTER
-	muxRoute(mux, "POST", "/api/v1/users/login", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Login)))                  // User Login
-	muxRoute(mux, "GET", "/api/v1/users/logout", middleware.Get(middleware.Auth(http.HandlerFunc(APIHandler.userHandler.Logout)))) // user logout
+	muxRoute(mux, "POST", "/api/v1/users/register", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Register))) // User REGISTER
+	muxRoute(mux, "POST", "/api/v1/users/login", middleware.Post(http.HandlerFunc(APIHandler.userHandler.Login)))       // User Login
+	muxRoute(mux, "GET", "/api/v1/users/logout", middleware.Get(http.HandlerFunc(APIHandler.userHandler.Logout)))       // user logout
 
 	muxRoute(mux, "GET", "/api/v1/categories/dashboard", middleware.Get(middleware.Auth(http.HandlerFunc(APIHandler.categoryHandler.GetCategory))))                        // Show Dashboard with categories with their tasks
 	muxRoute(mux, "POST", "/api/v1/categories/create", middleware.Post(middleware.Auth(http.HandlerFunc(APIHandler.categoryHandler.CreateCategory))))                      // Create new category

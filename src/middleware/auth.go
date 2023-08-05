@@ -20,7 +20,12 @@ func Auth(next http.Handler) http.Handler {
 
 		if err != nil {
 			if headerType == "application/json" {
-				http.Error(w, "please login first", http.StatusUnauthorized)
+				respone := map[string]interface{}{
+					"status": http.StatusInternalServerError,
+					"error":  "please login first",
+				}
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(respone)
 				return
 			} else {
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
